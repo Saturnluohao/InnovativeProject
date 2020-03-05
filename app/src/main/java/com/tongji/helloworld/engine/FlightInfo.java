@@ -30,4 +30,11 @@ public class FlightInfo {
             e.printStackTrace();
         }
     }
+
+    FlightInfo(String _icao, double _lat, double _lng, int _height, int _direction){
+        icao = _icao;
+        position = new LatLng(_lat, _lng);
+        height = _height;
+        direction = _direction;
+    }
 }

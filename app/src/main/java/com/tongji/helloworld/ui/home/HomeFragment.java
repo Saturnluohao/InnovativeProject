@@ -126,7 +126,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onPause() {
         Log.d("saturn", "Home Fragment paused");
-        dataSource.stopUpdate();
+        //dataSource.stopUpdate();
         super.onPause();
         mMapView.onPause();
     }
