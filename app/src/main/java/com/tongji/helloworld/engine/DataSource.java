@@ -97,14 +97,17 @@ public class DataSource {
     }
 
     public void showHeatMap(){
-        int[] DEFAULT_GRADIENT_COLORS = {Color.rgb(102, 225, 0), Color.rgb(255, 0, 0)};
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int[] DEFAULT_GRADIENT_COLORS = {Color.rgb(102, 225, 0), Color.rgb(255, 0, 0)};
 //设置渐变颜色起始值
-        float[] DEFAULT_GRADIENT_START_POINTS = {0.2f, 1f};
+                float[] DEFAULT_GRADIENT_START_POINTS = {0.2f, 1f};
 //构造颜色渐变对象
-        Gradient gradient = new Gradient(DEFAULT_GRADIENT_COLORS, DEFAULT_GRADIENT_START_POINTS);
-        List<LatLng> randomList = new ArrayList<LatLng>();
+                Gradient gradient = new Gradient(DEFAULT_GRADIENT_COLORS, DEFAULT_GRADIENT_START_POINTS);
+                List<LatLng> randomList = new ArrayList<LatLng>();
 
-        Random r = new Random();
+        /*Random r = new Random();
         for (int i = 0; i < 500; i++) {
             // 116.220000,39.780000 116.570000,40.150000
             int rlat = r.nextInt(370000);
@@ -113,14 +116,53 @@ public class DataSource {
             int lng = 116220000 + rlng;
             LatLng ll = new LatLng(lat / 1E6, lng / 1E6);
             randomList.add(ll);
-        }
-        HeatMap mCustomHeatMap = new HeatMap.Builder()
-                .data(randomList)
-                .gradient(gradient)
-                .build();
+        }*/
 
-        mBaiduMap.addHeatMap(mCustomHeatMap);
+                try {
+                    String trackData = getTrack();
+                    JSONArray tracks = new JSONArray(trackData);
+                    for(int i = 0; i < tracks.length(); i++){
+                        JSONArray track = tracks.getJSONArray(i);
+                        randomList.add(new LatLng(track.getDouble(1), track.getDouble(0)));
+                    }
+                }catch (JSONException e){
+                    e.printStackTrace();
+                }
+
+                HeatMap mCustomHeatMap = new HeatMap.Builder()
+                        .data(randomList)
+                        .gradient(gradient)
+                        .build();
+
+                mBaiduMap.addHeatMap(mCustomHeatMap);
+            }
+        }).start();
     }
+
+    private String getTrack(){
+        StringBuilder json = new StringBuilder();
+        String line;
+        try {
+            URL url = new URL("http://192.168.2.103:5000/track");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            if(conn.getResponseCode() != HttpURLConnection.HTTP_OK){
+                return "";
+            }
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            while((line = br.readLine()) != null){
+                json.append(line);
+            }
+            br.close();
+            conn.disconnect();
+
+        }catch (MalformedURLException e){
+            e.printStackTrace();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        return json.toString();
+    }
+
 
     public void stopUpdate(){
         shouldExit = true;
