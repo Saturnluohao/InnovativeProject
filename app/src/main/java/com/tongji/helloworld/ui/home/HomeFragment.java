@@ -106,7 +106,7 @@ public class HomeFragment extends Fragment {
 
         dataSource = new DataSource(mMap);
         dataSource.startUpdateAirplanePos();
-        dataSource.showHeatMap();
+        //dataSource.showHeatMap();
         mMap.setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
