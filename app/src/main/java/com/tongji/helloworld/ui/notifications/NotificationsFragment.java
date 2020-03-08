@@ -54,12 +54,15 @@ public class NotificationsFragment extends Fragment {
 
     private NotificationsViewModel notificationsViewModel;
 
+    private MySurfaceView2 mySurfaceView;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
             ViewGroup container, Bundle savedInstanceState) {
         Log.d("saturn", "Notice Fragment's view created");
 
         notificationsViewModel = ViewModelProviders.of(this).get(NotificationsViewModel.class);
         View root = inflater.inflate(R.layout.fragment_notifications, container, false);
+        mySurfaceView = root.findViewById(R.id.plane);
         textureView = root.findViewById(R.id.textureView);
         textureView.setSurfaceTextureListener(textureListener);
         root.findViewById(R.id.takePicture).setOnClickListener(new View.OnClickListener() {
@@ -68,13 +71,6 @@ public class NotificationsFragment extends Fragment {
                 capture();
             }
         });
-//        final TextView textView = root.findViewById(R.id.text_notifications);
-//        notificationsViewModel.getText().observe(this, new Observer<String>() {
-//            @Override
-//            public void onChanged(@Nullable String s) {
-//                textView.setText(s);
-//            }
-//        });
         return root;
     }
 
