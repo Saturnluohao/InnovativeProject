@@ -84,6 +84,7 @@ public class NotificationsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         Log.d("saturn", "Notice Fragment created");
     }
+
     private static final String TAG = "RHCamera2";
 
     private static final String TAG_PREVIEW = "预览";
@@ -174,24 +175,6 @@ public class NotificationsFragment extends Fragment {
         }
     };
 
-
-//    @RequiresApi(api = Build.VERSION_CODES.M)
-//    @Override
-//    protected void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_main);
-//        textureView = findViewById(R.id.textureView);
-//        textureView.setSurfaceTextureListener(textureListener);
-//
-//        findViewById(R.id.takePicture).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                capture();
-//            }
-//        });
-//
-//    }
-
     @Override
     public void onPause() {
         closeCamera();
@@ -224,10 +207,14 @@ public class NotificationsFragment extends Fragment {
                 StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                 mPreviewSize = getOptimalSize(map.getOutputSizes(SurfaceTexture.class), width, height);
                 int orientation = getResources().getConfiguration().orientation;
+                /**
+                 * 以下步骤需要优化，屏幕上会有白边
+                 */
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     textureView.setAspectRatio(mPreviewSize.getWidth(), mPreviewSize.getHeight());
                 } else {
                     textureView.setAspectRatio(mPreviewSize.getHeight(), mPreviewSize.getWidth());
+                    //textureView.setAspectRatio(, mPreviewSize.getWidth());
                 }
 
 
@@ -335,7 +322,7 @@ public class NotificationsFragment extends Fragment {
 
     private void setupImageReader() {
         //前三个参数分别是需要的尺寸和格式，最后一个参数代表每次最多获取几帧数据
-        mImageReader = ImageReader.newInstance(mPreviewSize.getWidth(), mPreviewSize.getHeight(), ImageFormat.JPEG, 1);
+        mImageReader = ImageReader.newInstance(mPreviewSize.getWidth(), mPreviewSize.getHeight(), ImageFormat.JPEG, 2);
         //监听ImageReader的事件，当有图像流数据可用时会回调onImageAvailable方法，它的参数就是预览帧数据，可以对这帧数据进行处理
         mImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
             @Override
