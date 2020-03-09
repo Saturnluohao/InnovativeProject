@@ -472,7 +472,7 @@ public class NotificationsFragment extends Fragment implements SensorEventListen
     private SensorManager sensorManager;
     private ImageView compass_img;
     private float lastRotateDegree;
-    private double compass_angle = 0;//方位角，0度代表正北
+    public static double compass_angle = 0;//方位角，0度代表正北
     private float pitch_angle = 0;//俯仰角
     private Sensor sensor;
 
