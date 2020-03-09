@@ -8,6 +8,10 @@ import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -31,6 +35,9 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
@@ -50,7 +57,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class NotificationsFragment extends Fragment {
+public class NotificationsFragment extends Fragment implements SensorEventListener {
 
     private NotificationsViewModel notificationsViewModel;
 
@@ -62,6 +69,7 @@ public class NotificationsFragment extends Fragment {
 
         notificationsViewModel = ViewModelProviders.of(this).get(NotificationsViewModel.class);
         View root = inflater.inflate(R.layout.fragment_notifications, container, false);
+
         mySurfaceView = root.findViewById(R.id.plane);
         textureView = root.findViewById(R.id.textureView);
         textureView.setSurfaceTextureListener(textureListener);
@@ -71,6 +79,22 @@ public class NotificationsFragment extends Fragment {
                 capture();
             }
         });
+
+        //注册传感器
+        compass_img = (ImageView) root.findViewById(R.id.compass_img);
+        sensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
+
+        //方向传感器
+        Sensor orientationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+        sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_GAME);
+
+        //加速度感应器
+        Sensor magneticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        //地磁感应器
+        Sensor accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sensorManager.registerListener(this, magneticSensor, SensorManager.SENSOR_DELAY_GAME);
+        sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_GAME);
+
         return root;
     }
 
@@ -188,6 +212,10 @@ public class NotificationsFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         Log.d("saturn", "Notice Fragment destroyed");
+
+        if (sensorManager != null) {
+            sensorManager.unregisterListener(this);
+        }
     }
 
     private void setupCamera(int width, int height) {
@@ -438,4 +466,56 @@ public class NotificationsFragment extends Fragment {
         }
     }
 
+    /**
+     * 以下内容摘抄自简书 - 指南针
+     */
+    private SensorManager sensorManager;
+    private ImageView compass_img;
+    private float lastRotateDegree;
+    private double compass_angle = 0;//方位角，0度代表正北
+    private float pitch_angle = 0;//俯仰角
+    private Sensor sensor;
+
+    float[] accelerometerValues = new float[3];
+
+    float[] magneticValues = new float[3];
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        // 判断当前是加速度感应器还是地磁感应器
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            //赋值调用clone方法
+            accelerometerValues = event.values.clone();
+        } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+            //赋值调用clone方法
+            magneticValues = event.values.clone();
+        }
+//        else if(event.sensor.getType() == Sensor.TYPE_ORIENTATION){
+//            pitch_angle = (float)(event.values[1] * 100) / 100;
+//            Log.d("俯仰角：", String.valueOf(pitch_angle));
+//        }
+        float[] R = new float[9];
+        float[] values = new float[3];
+        SensorManager.getRotationMatrix(R,null,accelerometerValues,magneticValues);
+        sensorManager.getOrientation(R, values);
+        compass_angle = Math.toDegrees(values[0]);//实时更新方位角
+        //values[0]的取值范围是-180到180度。
+        //+-180表示正南方向，0度表示正北，-90表示正西，+90表示正东
+
+        //将计算出的旋转角度取反，用于旋转指南针背景图
+        float rotateDegree = -(float) Math.toDegrees(values[0]);
+        if (Math.abs(rotateDegree - lastRotateDegree) > 1) {
+            RotateAnimation animation = new RotateAnimation(lastRotateDegree,rotateDegree, Animation.RELATIVE_TO_SELF,0.5f,
+                    Animation.RELATIVE_TO_SELF,0.5f);
+            animation.setFillAfter(true);
+            compass_img.startAnimation(animation);
+            lastRotateDegree = rotateDegree;
+        }
+
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
 }

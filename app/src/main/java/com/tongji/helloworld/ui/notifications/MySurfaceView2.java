@@ -9,16 +9,24 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.tongji.helloworld.R;
 
-public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callback,Runnable{
+public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callback,Runnable,SensorEventListener{
     private SurfaceHolder mHolder;//SurfaceHolder
     private Canvas mCanvas;//用于绘制的Canvas
     private boolean mIsDrawing;//子线程标志位
+
+    private SensorManager sensorManager;
+    private float pitch_angle = 0;//屏幕俯仰角
 
     public MySurfaceView2(Context context) {
         super(context);
@@ -44,6 +52,10 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
         setFocusableInTouchMode(true);
         setKeepScreenOn(true);
 
+        //设置传感器
+        sensorManager = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
+        Sensor orientationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+        sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_GAME);
     }
 
 
@@ -99,46 +111,63 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
 
     private int test = 0;
     private void drawPlane(){//画飞机
-        try{
-            mCanvas=mHolder.lockCanvas();
-            mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);//绘制透明色（画布大小为整个屏幕）
+        if(pitch_angle < -100) {//举起手机,出现手机
+            try {
+                mCanvas = mHolder.lockCanvas();
+                mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);//绘制透明色（画布大小为整个屏幕）
 
-            //这里写要绘制的内容
+                //这里写要绘制的内容
 
-            //画笔操作
-            Paint p = new Paint();//新建画笔
-            p.setColor(Color.RED); // 设置画笔的颜色为红色
-            p.setTextSize(80);//字体大小
+                //画笔操作
+                Paint p = new Paint();//新建画笔
+                p.setColor(Color.RED); // 设置画笔的颜色为红色
+                p.setTextSize(80);//字体大小
 
-            //加载飞机图标1号
-            Bitmap bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.plane);
-            Matrix matrix = new Matrix();
-            matrix.postScale((float)0.5,(float)0.5);//设置缩放比例
-            bitmap = Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),matrix,false);
-            //int left = mCanvas.getWidth()/2 - bitmap.getWidth()/2;
-            int left = ((test++)%20)*50;
-            int top = 80;
-            mCanvas.drawBitmap(bitmap, left, top, new Paint());//居中画一个飞机
+                //加载飞机图标1号
+                Bitmap bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.plane);
+                Matrix matrix = new Matrix();
+                matrix.postScale((float) 0.5, (float) 0.5);//设置缩放比例
+                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
+                //int left = mCanvas.getWidth()/2 - bitmap.getWidth()/2;
+                int left = ((test++) % 20) * 50;
+                int top = 80;
+                mCanvas.drawBitmap(bitmap, left, top, new Paint());//居中画一个飞机
 
-            //渲染航班号1号
-            mCanvas.drawText("MH370", left, top + bitmap.getWidth(), p);
+                //渲染航班号1号
+                mCanvas.drawText("MH370", left, top + bitmap.getWidth(), p);
 
-            //加载飞机图标2号
-            matrix.postScale((float)0.9,(float)0.9);//设置缩放比例
-            bitmap = Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),matrix,false);
-            left = ((test++)%40)*25;
-            top+=100;
-            mCanvas.drawBitmap(bitmap, left, top, new Paint());//居中画一个飞机
+                //加载飞机图标2号
+                matrix.postScale((float) 0.9, (float) 0.9);//设置缩放比例
+                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
+                left = ((test++) % 40) * 25;
+                top += 100;
+                mCanvas.drawBitmap(bitmap, left, top, new Paint());//居中画一个飞机
 
-            //渲染航班号2号
-            p.setTextSize(40);
-            mCanvas.drawText("CN1949", left, top + bitmap.getWidth(), p);
-        }catch (Exception e){
-            e.printStackTrace();
-        }finally {
-            if(mCanvas!=null){
-                mHolder.unlockCanvasAndPost(mCanvas);//提交画布内容
+                //渲染航班号2号
+                p.setTextSize(40);
+                mCanvas.drawText("CN1949", left, top + bitmap.getWidth(), p);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (mCanvas != null) {
+                    mHolder.unlockCanvasAndPost(mCanvas);//提交画布内容
+                }
             }
+        } else {//摊平手机，手机消失
+            mCanvas = mHolder.lockCanvas();
+            mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);//绘制透明色（画布大小为整个屏幕）
+            mHolder.unlockCanvasAndPost(mCanvas);//提交画布内容
         }
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        pitch_angle = (float)(event.values[1] * 100) / 100;
+        Log.d("俯仰角：", String.valueOf(pitch_angle));
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 }
