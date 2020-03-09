@@ -11,7 +11,7 @@ public class FlightInfo {
     public double horizontalVelocity, veticalVelocity;
     public int height, direction;
 
-    FlightInfo(JSONArray data){
+    public FlightInfo(JSONArray data){
         try {
             /*icao = data.getString(0);
             registerNo = data.getString(1);
@@ -31,7 +31,7 @@ public class FlightInfo {
         }
     }
 
-    FlightInfo(String _icao, double _lat, double _lng, int _height, int _direction){
+    public FlightInfo(String _icao, double _lat, double _lng, int _height, int _direction){
         icao = _icao;
         position = new LatLng(_lat, _lng);
         height = _height;

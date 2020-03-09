@@ -14,6 +14,7 @@ import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.map.UrlTileProvider;
 import com.baidu.mapapi.model.LatLng;
 import com.tongji.helloworld.R;
+import com.tongji.helloworld.util.FlightInfoReceiver;
 import com.tongji.helloworld.util.MarkerUpdater;
 
 import org.json.JSONArray;

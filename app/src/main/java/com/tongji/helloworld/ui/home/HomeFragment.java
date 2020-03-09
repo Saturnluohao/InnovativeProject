@@ -28,7 +28,11 @@ import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
 import com.tongji.helloworld.R;
 import com.tongji.helloworld.engine.DataSource;
+import com.tongji.helloworld.engine.FlightInfo;
 import com.tongji.helloworld.service.UpdateAirplanePosService;
+import com.tongji.helloworld.util.FlightInfoReceiver;
+
+import java.util.List;
 
 import static android.content.Context.BIND_AUTO_CREATE;
 
@@ -81,7 +85,7 @@ public class HomeFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
         mMapView = root.findViewById(R.id.bmapView);
         initMyMap();
-
+        List<FlightInfo> res = FlightInfoReceiver.getCurrentFlightInfo(100, 120, 20, 40);
         return root;
     }
 
