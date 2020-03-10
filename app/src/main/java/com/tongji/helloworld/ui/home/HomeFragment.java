@@ -88,9 +88,8 @@ public class HomeFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
         mMapView = root.findViewById(R.id.bmapView);
         initMyMap();
-        List<FlightInfo> res = FlightInfoReceiver.getCurrentFlightInfo(100, 120, 20, 40);
-        RecyclerView city_list = getActivity().findViewById(R.id.city_list);
-        city_list.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+        //RecyclerView city_list = getActivity().findViewById(R.id.city_list);
+        //city_list.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
 
         return root;
     }
