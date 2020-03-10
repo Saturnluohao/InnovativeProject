@@ -44,10 +44,11 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
     private boolean mIsDrawing;//子线程标志位
 
     List<FlightInfo> flightInfoList;//周围飞机信息列表，只在界面初始化时更新一次
-    private final int radius = 3;//寻找以手机位置为圆心，以该值为半径的圆以内的飞机
+    private final double radius = 0.5;//寻找以手机位置为圆心，以该值为半径的圆以内的飞机
 
     private SensorManager sensorManager;
     private float pitch_angle = 0;//屏幕俯仰角（随时更新）
+    public static double compass_angle = 0;
     private double longitude;//经度（随时更新）
     private double latitude;//纬度（随时更新）
     int screenWidth;//手机屏幕宽度
@@ -79,7 +80,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
 
         //设置传感器
         sensorManager = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
-        Sensor orientationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+        Sensor orientationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);//用于获取俯仰角
         sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_GAME);
 
         //获取定位
@@ -92,6 +93,9 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
         //加载周围飞机
         flightInfoList = FlightInfoReceiver.getCurrentFlightInfo(
                 longitude-radius,longitude+radius,latitude-radius,latitude+radius);
+//        FlightInfo flightInfo = new FlightInfo("MH370", 100, 30, 5000, 1);
+//        flightInfoList = flightInfoList.subList(0,0);
+//        flightInfoList.add(flightInfo);
         Log.d("列表中的飞机数：", String.valueOf(flightInfoList.size()));
     }
 
@@ -122,7 +126,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
             //draw();
             drawPlane();
             try {
-                Thread.sleep(50); // 让线程休息50毫秒
+                Thread.sleep(200); // 让线程休息1000毫秒
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -151,7 +155,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                 //压缩飞机图标
                 bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
 
-                double compass_angle = NotificationsFragment.compass_angle;//获取相机镜头方位角
+                //渲染飞机
                 for(FlightInfo flightInfo : flightInfoList){
                     float results[] = new float[3];
                     computeDistanceAndBearing(latitude, longitude, flightInfo.position.latitude, flightInfo.position.longitude, results);
@@ -159,16 +163,9 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                     float initialBearing = results[1];
                     float finalBearing = results[2];
 
-                    //修正屏幕方向角（因为举起来了，方向角调转180度）
-                    if(compass_angle > 0){
-                        compass_angle -= 180;
-                    }
-                    else{
-                        compass_angle += 180;
-                    }
                     //计算方向角之差
-                    float bearingDiff = (float) (compass_angle - initialBearing);
-                    float absBearingDiff = (float) Math.abs(compass_angle - initialBearing);
+                    float bearingDiff = (float) (compass_angle - finalBearing);
+                    float absBearingDiff = (float) Math.abs(compass_angle - finalBearing);
                     if (absBearingDiff > 180) {
                         absBearingDiff = 360 - absBearingDiff;
                     }
@@ -177,7 +174,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                     //如果方向角之差小于30度，则渲染
                     if(absBearingDiff < 30){
                         //绘制图标
-                        float left = screenWidth/2 - bitmap.getWidth()/2 + leftRight * (absBearingDiff - 30) * screenWidth / 60;
+                        float left = screenWidth/2 - bitmap.getWidth()/2 + leftRight * absBearingDiff * screenWidth / 60;
                         float top = 80;
                         mCanvas.drawBitmap(bitmap, left, top, new Paint());
                         //绘制航班号
@@ -187,26 +184,6 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                     }
                 }
 
-//                matrix.postScale((float) 0.5, (float) 0.5);//设置缩放比例
-//                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
-//                //int left = mCanvas.getWidth()/2 - bitmap.getWidth()/2;
-//                int left = ((test++) % 20) * 50;
-//                int top = 80;
-//                mCanvas.drawBitmap(bitmap, left, top, new Paint());//居中画一个飞机
-//
-//                //渲染航班号1号
-//                mCanvas.drawText("MH370", left, top + bitmap.getWidth(), p);
-//
-//                //加载飞机图标2号
-//                matrix.postScale((float) 0.9, (float) 0.9);//设置缩放比例
-//                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
-//                left = ((test++) % 40) * 25;
-//                top += 100;
-//                mCanvas.drawBitmap(bitmap, left, top, new Paint());//居中画一个飞机
-//
-//                //渲染航班号2号
-//                p.setTextSize(40);
-//                mCanvas.drawText("CN1949", left, top + bitmap.getWidth(), p);
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
@@ -224,7 +201,19 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     public void onSensorChanged(SensorEvent event) {
         pitch_angle = (float) (event.values[1] * 100) / 100;
-        //Log.d("俯仰角：", String.valueOf(pitch_angle));
+        //Log.d("方位角：", String.valueOf((float)(event.values[0]*100)/100));
+        //更新方位角
+        double temp_compass_angle = event.values[0] > 180? event.values[0] - 360 : event.values[0];//把 0~360 的角度转化为 -180~180
+        //如果手机举起来朝天，则调转180
+//        if(pitch_angle < -90){
+//            if(temp_compass_angle > 0){
+//                compass_angle = temp_compass_angle - 180;
+//            }
+//            else compass_angle = temp_compass_angle + 180;
+//        }else {
+//            compass_angle = temp_compass_angle;
+//        }
+        compass_angle = temp_compass_angle;
     }
 
     @Override

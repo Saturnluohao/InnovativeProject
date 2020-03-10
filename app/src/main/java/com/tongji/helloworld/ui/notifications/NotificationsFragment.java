@@ -498,12 +498,13 @@ public class NotificationsFragment extends Fragment implements SensorEventListen
         float[] values = new float[3];
         SensorManager.getRotationMatrix(R,null,accelerometerValues,magneticValues);
         sensorManager.getOrientation(R, values);
-        compass_angle = Math.toDegrees(values[0]);//实时更新方位角
+        //compass_angle = Math.toDegrees(values[0]);//实时更新方位角
+        compass_angle = MySurfaceView2.compass_angle;//取自他处
         //values[0]的取值范围是-180到180度。
         //+-180表示正南方向，0度表示正北，-90表示正西，+90表示正东
 
         //将计算出的旋转角度取反，用于旋转指南针背景图
-        float rotateDegree = -(float) Math.toDegrees(values[0]);
+        float rotateDegree = -(float) Math.toDegrees(compass_angle/60);
         if (Math.abs(rotateDegree - lastRotateDegree) > 1) {
             RotateAnimation animation = new RotateAnimation(lastRotateDegree,rotateDegree, Animation.RELATIVE_TO_SELF,0.5f,
                     Animation.RELATIVE_TO_SELF,0.5f);
