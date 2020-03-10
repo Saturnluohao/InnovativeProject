@@ -252,7 +252,7 @@ public class DataSource {
                 int altitude = prop.optInt("altitude", 0);
                 int direction = prop.getInt("direction");
                 String icao = prop.getString("flight_id");
-                FlightInfoList.add(new FlightInfo(icao, lat, lng, altitude, direction));
+                FlightInfoList.add(new FlightInfo(icao, lat, lng, altitude, direction, "hhh"));
             }
         }catch (JSONException e){
             e.printStackTrace();
@@ -277,7 +277,7 @@ public class DataSource {
                 Double lng = item.getDouble(2);
                 int direction = item.getInt(3);
                 int altitude = item.getInt(4);
-                FlightInfoList.add(new FlightInfo(icao, lat, lng, altitude, direction));
+                FlightInfoList.add(new FlightInfo(icao, lat, lng, altitude, direction, "hhh"));
             }
         }catch (JSONException e){
             e.printStackTrace();
