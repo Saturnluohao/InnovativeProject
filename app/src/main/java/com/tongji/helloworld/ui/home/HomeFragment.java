@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -13,6 +14,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
@@ -86,6 +89,9 @@ public class HomeFragment extends Fragment {
         mMapView = root.findViewById(R.id.bmapView);
         initMyMap();
         List<FlightInfo> res = FlightInfoReceiver.getCurrentFlightInfo(100, 120, 20, 40);
+        RecyclerView city_list = getActivity().findViewById(R.id.city_list);
+        city_list.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+
         return root;
     }
 

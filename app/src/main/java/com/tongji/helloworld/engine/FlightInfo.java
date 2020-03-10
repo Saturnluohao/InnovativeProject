@@ -6,7 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 public class FlightInfo {
-    public String icao, registerNo, callSiginal;
+    public String icao, registerNo, callSiginal, type;
     public LatLng position;
     public double horizontalVelocity, veticalVelocity;
     public int height, direction;
@@ -31,10 +31,11 @@ public class FlightInfo {
         }
     }
 
-    public FlightInfo(String _icao, double _lat, double _lng, int _height, int _direction){
+    public FlightInfo(String _icao, double _lat, double _lng, int _height, int _direction, String _type){
         icao = _icao;
         position = new LatLng(_lat, _lng);
         height = _height;
         direction = _direction;
+        this.type = _type;
     }
 }

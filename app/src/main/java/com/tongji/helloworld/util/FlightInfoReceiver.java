@@ -88,7 +88,8 @@ class ReceiveThread extends Thread{
                 Double lng = item.getDouble(2);
                 int direction = item.getInt(3);
                 int altitude = item.getInt(4);
-                FlightInfoList.add(new FlightInfo(icao, lat, lng, altitude, direction));
+                String type = item.getString(8);
+                FlightInfoList.add(new FlightInfo(icao, lat, lng, altitude, direction, type));
             }
         }catch (JSONException e){
             e.printStackTrace();
