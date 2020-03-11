@@ -52,6 +52,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
     private double longitude;//经度（随时更新）
     private double latitude;//纬度（随时更新）
     int screenWidth;//手机屏幕宽度
+    int screenHeight;//手机屏幕高度
 
 
     public MySurfaceView2(Context context) {
@@ -86,9 +87,10 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
         //获取定位
         getLocation();
 
-        //获取手机屏幕宽度
+        //获取手机屏幕长宽度
         Display display = ((Activity)getContext()).getWindowManager().getDefaultDisplay();
         screenWidth = display.getWidth();
+        screenHeight = display.getHeight();
 
         //加载周围飞机
         flightInfoList = FlightInfoReceiver.getCurrentFlightInfo(
@@ -186,14 +188,29 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                                 case "A320":
                                     bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a320);
                                     break;
+                                case "A20N":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a320neo);
+                                    break;
+                                case "A21N"://将A321neo趋近于A320neo
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a320neo);
+                                    break;
                                 case "A321":
                                     bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a321);
                                     break;
                                 case "A330":
-                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a330);
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a330m200);
+                                    break;
+                                case "A333"://将a330-300趋近于a330-200
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a330m200);
+                                    break;
+                                case "A30N":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a330neo);
+                                    break;
+                                case "A332":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a330m200);
                                     break;
                                 case "A340":
-                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a340);
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a340m300);
                                     break;
                                 case "A350":
                                     bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a350);
@@ -214,22 +231,34 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                                     bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b717);
                                     break;
                                 case "B727":
-                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b727);
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b727m100);
+                                    break;
+                                case "B736"://将B737-600趋近于B737-500
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b737m500);
                                     break;
                                 case "B737":
-                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b737);
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b737m200);
+                                    break;
+                                case "B738":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b737m800);
+                                    break;
+                                case "B744":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b747m400);
                                     break;
                                 case "B747":
-                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b747);
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b747m200);
                                     break;
-                                case "B757":
-                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b757);
+                                case "B752":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b757m200);
                                     break;
                                 case "B767":
-                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b767);
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b767m200);
                                     break;
                                 case "B777":
-                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b777);
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b777m200);
+                                    break;
+                                case "B77W":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b777m300er);
                                     break;
                                 case "B787":
                                     bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b787);
@@ -239,20 +268,28 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                             }
                         }
                         else{//其他机型
-                            bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.plane);
+                            switch (type){
+                                case "E190":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.e190e2);
+                                    break;
+                                default:
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.plane);
+                            }
                         }
                         Matrix matrix = new Matrix();//用于设置缩放比例
                         matrix.postScale((float) 0.4, (float) 0.4);//设置缩放比例
                         //压缩飞机图标
                         bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
-                        //计算屏幕中的位置
+                        //计算屏幕中的横坐标
                         float left = screenWidth/2 - bitmap.getWidth()/2 + leftRight * absBearingDiff * screenWidth / 60;
-                        float top = 80;
+                        //计算在屏幕中的纵坐标
+                        float height = flightInfo.height > 40000? 40000 : flightInfo.height;//默认最高4w，超过四万按照四万算
+                        float top = screenHeight * 3/4 * (1-height/40000);
                         mCanvas.drawBitmap(bitmap, left, top, new Paint());
                         //绘制航班号
-                        String icao = flightInfo.icao;
+                        String icao = flightInfo.type;
                         p.setTextSize(40);
-                        mCanvas.drawText(icao, left, top + bitmap.getWidth(), p);
+                        mCanvas.drawText(icao, left+50, top + bitmap.getWidth()+20, p);
                     }
                 }
 
