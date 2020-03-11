@@ -44,7 +44,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
     private boolean mIsDrawing;//子线程标志位
 
     List<FlightInfo> flightInfoList;//周围飞机信息列表，只在界面初始化时更新一次
-    private final double radius = 0.5;//寻找以手机位置为圆心，以该值为半径的圆以内的飞机
+    private final double radius = 1;//寻找以手机位置为圆心，以该值为半径的圆以内的飞机
 
     private SensorManager sensorManager;
     private float pitch_angle = 0;//屏幕俯仰角（随时更新）
@@ -148,12 +148,6 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                 p.setColor(Color.RED); // 设置画笔的颜色为红色
                 p.setTextSize(80);//字体大小
 
-                //加载飞机图标
-                Bitmap bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.plane);
-                Matrix matrix = new Matrix();//用于设置缩放比例
-                matrix.postScale((float) 0.4, (float) 0.4);//设置缩放比例
-                //压缩飞机图标
-                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
 
                 //渲染飞机
                 for(FlightInfo flightInfo : flightInfoList){
@@ -166,14 +160,92 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                     //计算方向角之差
                     float bearingDiff = (float) (compass_angle - finalBearing);
                     float absBearingDiff = (float) Math.abs(compass_angle - finalBearing);
+                    //计算飞机在屏幕左侧还是右侧
+                    int leftRight = (bearingDiff > 0 && absBearingDiff < 180) || (bearingDiff < 0 && absBearingDiff > 180) ? -1 : 1;
+                    //将方向角之差修正为小于180度
                     if (absBearingDiff > 180) {
                         absBearingDiff = 360 - absBearingDiff;
                     }
-                    //计算飞机在屏幕左侧还是右侧
-                    int leftRight = (bearingDiff > 0 && absBearingDiff < 180) || (bearingDiff < 0 && absBearingDiff > 180) ? -1 : 1;
                     //如果方向角之差小于30度，则渲染
                     if(absBearingDiff < 30){
                         //绘制图标
+                        //加载飞机图标
+                        Bitmap bitmap;
+                        String type = flightInfo.type;
+                        if(type.charAt(0) == 'A'){//空客的飞机
+                            switch (type){
+                                case "A300":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a300);
+                                    break;
+                                case "A318":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a318);
+                                    break;
+                                case "A319":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a319);
+                                    break;
+                                case "A320":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a320);
+                                    break;
+                                case "A321":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a321);
+                                    break;
+                                case "A330":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a330);
+                                    break;
+                                case "A340":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a340);
+                                    break;
+                                case "A350":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a350);
+                                    break;
+                                case "A380":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a380);
+                                    break;
+                                default:
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.airbus);
+                            }
+                        }
+                        else if(type.charAt(0) == 'B'){//波音的飞机
+                            switch (type){
+                                case "B707":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b707);
+                                    break;
+                                case "B717":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b717);
+                                    break;
+                                case "B727":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b727);
+                                    break;
+                                case "B737":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b737);
+                                    break;
+                                case "B747":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b747);
+                                    break;
+                                case "B757":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b757);
+                                    break;
+                                case "B767":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b767);
+                                    break;
+                                case "B777":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b777);
+                                    break;
+                                case "B787":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b787);
+                                    break;
+                                default:
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.boeing);
+                            }
+                        }
+                        else{//其他机型
+                            bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.plane);
+                        }
+                        Matrix matrix = new Matrix();//用于设置缩放比例
+                        matrix.postScale((float) 0.4, (float) 0.4);//设置缩放比例
+                        //压缩飞机图标
+                        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
+                        //计算屏幕中的位置
                         float left = screenWidth/2 - bitmap.getWidth()/2 + leftRight * absBearingDiff * screenWidth / 60;
                         float top = 80;
                         mCanvas.drawBitmap(bitmap, left, top, new Paint());
