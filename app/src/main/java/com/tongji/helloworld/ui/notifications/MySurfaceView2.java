@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -116,7 +117,11 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                 double touchY = event.getY();
                 for(FlightOnScreen flightOnScreen : flightOnScreenArrayList){
                     if(flightOnScreen.IsClick(touchX, touchY)){
-                        Toast t = Toast.makeText(getContext(),"type:" + flightOnScreen.myFlightInfo.flightInfo.type, Toast.LENGTH_LONG);
+                        Toast t = Toast.makeText(getContext(), null, Toast.LENGTH_LONG);
+                        t.setText("type:" + flightOnScreen.myFlightInfo.flightInfo.type + "\ndistance:" +
+                                flightOnScreen.myFlightInfo.distance + "\nheight:" +
+                                flightOnScreen.myFlightInfo.flightInfo.height);
+                        t.setGravity(Gravity.TOP,0,180);
                         t.show();
                         break;
                     };
