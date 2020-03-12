@@ -29,6 +29,7 @@ import android.view.SurfaceView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -36,6 +37,8 @@ import com.tongji.helloworld.R;
 import com.tongji.helloworld.engine.FlightInfo;
 import com.tongji.helloworld.util.FlightInfoReceiver;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callback, Runnable, SensorEventListener {
@@ -44,7 +47,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
     private boolean mIsDrawing;//子线程标志位
 
     List<FlightInfo> flightInfoList;//周围飞机信息列表，只在界面初始化时更新一次
-    private final double radius = 1;//寻找以手机位置为圆心，以该值为半径的圆以内的飞机
+    private final double radius = 2;//寻找以手机位置为圆心，以该值为半径的圆以内的飞机
 
     private SensorManager sensorManager;
     private float pitch_angle = 0;//屏幕俯仰角（随时更新）
@@ -54,23 +57,46 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
     int screenWidth;//手机屏幕宽度
     int screenHeight;//手机屏幕高度
 
+    //相机权限
+    List<String> requiredPermissions = Arrays.asList(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
+    //询问相机权限
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void checkPermissions() {
+        List<String> unGrantedPermissions = new ArrayList<>();
+        for (String permission : requiredPermissions) {
+            if (PackageManager.PERMISSION_GRANTED != getContext().checkSelfPermission(permission)) {
+                unGrantedPermissions.add(permission);
+            }
+        }
+        if (unGrantedPermissions.size() != 0) {
+            ((Activity)getContext()).requestPermissions(unGrantedPermissions.toArray(new String[unGrantedPermissions.size()]), 0);
+        }
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public MySurfaceView2(Context context) {
         super(context);
         init();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public MySurfaceView2(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public MySurfaceView2(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void init() {
+        checkPermissions();
+
         mHolder = getHolder();
         mHolder.addCallback(this);
         setZOrderOnTop(true);//使surfaceview放到最顶层
@@ -95,9 +121,10 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
         //加载周围飞机
         flightInfoList = FlightInfoReceiver.getCurrentFlightInfo(
                 longitude-radius,longitude+radius,latitude-radius,latitude+radius);
-//        FlightInfo flightInfo = new FlightInfo("MH370", 100, 30, 5000, 1);
 //        flightInfoList = flightInfoList.subList(0,0);
-//        flightInfoList.add(flightInfo);
+//        flightInfoList.add(new FlightInfo("B777", 31.804, 105.868, 23500, 1, "B777"));
+//        flightInfoList.add(new FlightInfo("B787", 31.375, 105.188, 13700, 1, "B787"));
+//        flightInfoList.add(new FlightInfo("B767", 30.954, 105.914, 29075, 1, "B767"));
         Log.d("列表中的飞机数：", String.valueOf(flightInfoList.size()));
     }
 
@@ -128,7 +155,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
             //draw();
             drawPlane();
             try {
-                Thread.sleep(200); // 让线程休息1000毫秒
+                Thread.sleep(50); // 让线程休息1000毫秒
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -152,6 +179,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
 
 
                 //渲染飞机
+                double tmp_compass_angle = compass_angle;//保证一个for循环当中compass_angle不变
                 for(FlightInfo flightInfo : flightInfoList){
                     float results[] = new float[3];
                     computeDistanceAndBearing(latitude, longitude, flightInfo.position.latitude, flightInfo.position.longitude, results);
@@ -160,8 +188,8 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                     float finalBearing = results[2];
 
                     //计算方向角之差
-                    float bearingDiff = (float) (compass_angle - finalBearing);
-                    float absBearingDiff = (float) Math.abs(compass_angle - finalBearing);
+                    float bearingDiff = (float) (tmp_compass_angle - finalBearing);
+                    float absBearingDiff = (float) Math.abs(tmp_compass_angle - finalBearing);
                     //计算飞机在屏幕左侧还是右侧
                     int leftRight = (bearingDiff > 0 && absBearingDiff < 180) || (bearingDiff < 0 && absBearingDiff > 180) ? -1 : 1;
                     //将方向角之差修正为小于180度
@@ -174,7 +202,9 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                         //加载飞机图标
                         Bitmap bitmap;
                         String type = flightInfo.type;
-                        if(type.charAt(0) == 'A'){//空客的飞机
+                        if(type.length() == 0){
+                            bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.plane);
+                        } else if(type.charAt(0) == 'A'){//空客的飞机
                             switch (type){
                                 case "A300":
                                     bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.a300);
@@ -248,8 +278,14 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                                 case "B747":
                                     bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b747m200);
                                     break;
+                                case "B748":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b747m8);
+                                    break;
                                 case "B752":
                                     bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b757m200);
+                                    break;
+                                case "B763":
+                                    bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b767m300);
                                     break;
                                 case "B767":
                                     bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b767m200);
@@ -289,7 +325,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                         //绘制航班号
                         String icao = flightInfo.type;
                         p.setTextSize(40);
-                        mCanvas.drawText(icao, left+50, top + bitmap.getWidth()+20, p);
+                        mCanvas.drawText(icao, left, top + bitmap.getWidth()+20, p);
                     }
                 }
 

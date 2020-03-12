@@ -41,6 +41,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
@@ -56,6 +57,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 public class NotificationsFragment extends Fragment implements SensorEventListener {
 
@@ -63,8 +65,26 @@ public class NotificationsFragment extends Fragment implements SensorEventListen
 
     private MySurfaceView2 mySurfaceView;
 
+    //相机权限
+    List<String> requiredPermissions = Arrays.asList(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+    //询问相机权限
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void checkPermissions() {
+        List<String> unGrantedPermissions = new ArrayList<>();
+        for (String permission : requiredPermissions) {
+            if (PackageManager.PERMISSION_GRANTED != getActivity().checkSelfPermission(permission)) {
+                unGrantedPermissions.add(permission);
+            }
+        }
+        if (unGrantedPermissions.size() != 0) {
+            requestPermissions(unGrantedPermissions.toArray(new String[unGrantedPermissions.size()]), 0);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
-            ViewGroup container, Bundle savedInstanceState) {
+                             ViewGroup container, Bundle savedInstanceState) {
         Log.d("saturn", "Notice Fragment's view created");
 
         notificationsViewModel = ViewModelProviders.of(this).get(NotificationsViewModel.class);
@@ -79,6 +99,9 @@ public class NotificationsFragment extends Fragment implements SensorEventListen
                 capture();
             }
         });
+
+        //询问相机权限
+        checkPermissions();
 
         //注册传感器
         compass_img = (ImageView) root.findViewById(R.id.compass_img);
