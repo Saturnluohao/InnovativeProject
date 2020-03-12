@@ -24,8 +24,10 @@ import android.os.Bundle;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Display;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -46,8 +48,9 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
     private Canvas mCanvas;//用于绘制的Canvas
     private boolean mIsDrawing;//子线程标志位
 
-    List<FlightInfo> flightInfoList;//周围飞机信息列表，只在界面初始化时更新一次
+    ArrayList<MyFlightInfo> flightInfoList;//周围飞机信息列表，只在界面初始化时更新一次
     private final double radius = 2;//寻找以手机位置为圆心，以该值为半径的圆以内的飞机
+    ArrayList<FlightOnScreen> flightOnScreenArrayList;//在屏幕上的飞机的列表
 
     private SensorManager sensorManager;
     private float pitch_angle = 0;//屏幕俯仰角（随时更新）
@@ -105,6 +108,22 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
         setFocusableInTouchMode(true);
         setKeepScreenOn(true);
 
+        this.setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                double touchX = event.getX();
+                double touchY = event.getY();
+                for(FlightOnScreen flightOnScreen : flightOnScreenArrayList){
+                    if(flightOnScreen.IsClick(touchX, touchY)){
+                        Toast t = Toast.makeText(getContext(),"type:" + flightOnScreen.myFlightInfo.flightInfo.type, Toast.LENGTH_LONG);
+                        t.show();
+                        break;
+                    };
+                }
+                return false;
+            }
+        });
+
         //设置传感器
         sensorManager = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
         Sensor orientationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);//用于获取俯仰角
@@ -119,12 +138,36 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
         screenHeight = display.getHeight();
 
         //加载周围飞机
-        flightInfoList = FlightInfoReceiver.getCurrentFlightInfo(
+        List<FlightInfo> tmpFlightInfoList = FlightInfoReceiver.getCurrentFlightInfo(
                 longitude-radius,longitude+radius,latitude-radius,latitude+radius);
-//        flightInfoList = flightInfoList.subList(0,0);
-//        flightInfoList.add(new FlightInfo("B777", 31.804, 105.868, 23500, 1, "B777"));
-//        flightInfoList.add(new FlightInfo("B787", 31.375, 105.188, 13700, 1, "B787"));
-//        flightInfoList.add(new FlightInfo("B767", 30.954, 105.914, 29075, 1, "B767"));
+        //将原始飞机信息处理后存入flightInfoList
+        flightInfoList = new ArrayList<MyFlightInfo>();
+        for(FlightInfo flightInfo : tmpFlightInfoList) {//排序
+            float results[] = new float[3];
+            computeDistanceAndBearing(latitude, longitude, flightInfo.position.latitude, flightInfo.position.longitude, results);
+            float distance = results[0];//飞机和用户之间的距离
+            float initialBearing = results[1];
+            float finalBearing = results[2];//飞机相对于用户手机镜头朝向的方向角
+            MyFlightInfo myFlightInfo = new MyFlightInfo(flightInfo, (double)distance, (double)finalBearing);
+            if(flightInfoList.size() == 0){//原集合为空
+                flightInfoList.add(myFlightInfo);
+            }
+            else{//原集合不为空
+                boolean is_succ = false;
+                int listLen = flightInfoList.size();
+                for(int index = 0; index < listLen; index++){
+                    if(flightInfoList.get(index).distance < distance){
+                        flightInfoList.add(index, myFlightInfo);
+                        is_succ = true;
+                        break;
+                    }
+                }
+                if(!is_succ){
+                    flightInfoList.add(myFlightInfo);
+                }
+            }
+        }
+        flightOnScreenArrayList = new ArrayList<FlightOnScreen>();
         Log.d("列表中的飞机数：", String.valueOf(flightInfoList.size()));
     }
 
@@ -167,10 +210,12 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
     private void drawPlane() {//画飞机
         if (pitch_angle < -100) {//举起手机,出现手机
             try {
-                mCanvas = mHolder.lockCanvas();
+                mCanvas = mHolder.lockCanvas();//初始化画布
+
                 mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);//绘制透明色（画布大小为整个屏幕）
 
-                //这里写要绘制的内容
+                //预先清空
+                flightOnScreenArrayList.clear();
 
                 //画笔操作
                 Paint p = new Paint();//新建画笔
@@ -180,16 +225,10 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
 
                 //渲染飞机
                 double tmp_compass_angle = compass_angle;//保证一个for循环当中compass_angle不变
-                for(FlightInfo flightInfo : flightInfoList){
-                    float results[] = new float[3];
-                    computeDistanceAndBearing(latitude, longitude, flightInfo.position.latitude, flightInfo.position.longitude, results);
-                    float distance = results[0];
-                    float initialBearing = results[1];
-                    float finalBearing = results[2];
-
+                for(MyFlightInfo flightInfo : flightInfoList){
                     //计算方向角之差
-                    float bearingDiff = (float) (tmp_compass_angle - finalBearing);
-                    float absBearingDiff = (float) Math.abs(tmp_compass_angle - finalBearing);
+                    float bearingDiff = (float) (tmp_compass_angle - flightInfo.bearing);
+                    float absBearingDiff = (float) Math.abs(tmp_compass_angle - flightInfo.bearing);
                     //计算飞机在屏幕左侧还是右侧
                     int leftRight = (bearingDiff > 0 && absBearingDiff < 180) || (bearingDiff < 0 && absBearingDiff > 180) ? -1 : 1;
                     //将方向角之差修正为小于180度
@@ -201,7 +240,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                         //绘制图标
                         //加载飞机图标
                         Bitmap bitmap;
-                        String type = flightInfo.type;
+                        String type = flightInfo.flightInfo.type;
                         if(type.length() == 0){
                             bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.plane);
                         } else if(type.charAt(0) == 'A'){//空客的飞机
@@ -290,7 +329,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                                 case "B767":
                                     bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b767m200);
                                     break;
-                                case "B777":
+                                case "B772":
                                     bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.b777m200);
                                     break;
                                 case "B77W":
@@ -319,13 +358,17 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                         //计算屏幕中的横坐标
                         float left = screenWidth/2 - bitmap.getWidth()/2 + leftRight * absBearingDiff * screenWidth / 60;
                         //计算在屏幕中的纵坐标
-                        float height = flightInfo.height > 40000? 40000 : flightInfo.height;//默认最高4w，超过四万按照四万算
+                        float height = flightInfo.flightInfo.height > 40000? 40000 : flightInfo.flightInfo.height;//默认最高4w，超过四万按照四万算
                         float top = screenHeight * 3/4 * (1-height/40000);
                         mCanvas.drawBitmap(bitmap, left, top, new Paint());
                         //绘制航班号
-                        String icao = flightInfo.type;
+                        String icao = flightInfo.flightInfo.icao;
                         p.setTextSize(40);
                         mCanvas.drawText(icao, left, top + bitmap.getWidth()+20, p);
+
+                        //将该飞机加入屏幕飞机列表，按距离的升序排列
+                        FlightOnScreen flightOnScreen = new FlightOnScreen(flightInfo,left,top,bitmap.getWidth(),bitmap.getHeight());
+                        flightOnScreenArrayList.add(0, flightOnScreen);
                     }
                 }
 
@@ -340,6 +383,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
             mCanvas = mHolder.lockCanvas();
             mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);//绘制透明色（画布大小为整个屏幕）
             mHolder.unlockCanvasAndPost(mCanvas);//提交画布内容
+            flightOnScreenArrayList.clear();//清空屏幕上的飞机
         }
     }
 
