@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Canvas;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -95,12 +96,12 @@ public class NotificationsFragment extends Fragment implements SensorEventListen
         mySurfaceView = root.findViewById(R.id.plane);
         textureView = root.findViewById(R.id.textureView);
         textureView.setSurfaceTextureListener(textureListener);
-        root.findViewById(R.id.takePicture).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                capture();
-            }
-        });
+//        root.findViewById(R.id.takePicture).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                capture();
+//            }
+//        });
 
         //询问相机权限
         checkPermissions();

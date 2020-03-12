@@ -108,6 +108,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
         setFocusableInTouchMode(true);
         setKeepScreenOn(true);
 
+        //设置飞机图标点击事件
         this.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -211,7 +212,6 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
         if (pitch_angle < -100) {//举起手机,出现手机
             try {
                 mCanvas = mHolder.lockCanvas();//初始化画布
-
                 mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);//绘制透明色（画布大小为整个屏幕）
 
                 //预先清空
@@ -222,6 +222,9 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                 p.setColor(Color.RED); // 设置画笔的颜色为红色
                 p.setTextSize(80);//字体大小
 
+                //绘制刻度尺
+                Bitmap ruler = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.ruler);
+                mCanvas.drawBitmap(ruler, 50, 20, new Paint());
 
                 //渲染飞机
                 double tmp_compass_angle = compass_angle;//保证一个for循环当中compass_angle不变
