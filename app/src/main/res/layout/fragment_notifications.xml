@@ -36,4 +36,25 @@
         android:layout_alignParentRight="true"
         android:layout_marginRight="30dp"
         android:background="@mipmap/compass2"/>
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="70dp"
+        android:max="100"
+        android:min="0"
+        android:progress="50" />   <!--滑块默认位置-->
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="100dp"
+        android:layout_marginLeft="20dp"
+        android:text="调节观察范围"/>
+
 </RelativeLayout>

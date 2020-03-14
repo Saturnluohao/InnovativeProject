@@ -33,6 +33,7 @@ import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.TextureView;
@@ -41,7 +42,10 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -50,6 +54,8 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import com.tongji.helloworld.R;
+import com.tongji.helloworld.engine.FlightInfo;
+import com.tongji.helloworld.util.FlightInfoReceiver;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -65,8 +71,11 @@ import java.util.Objects;
 public class NotificationsFragment extends Fragment implements SensorEventListener {
 
     private NotificationsViewModel notificationsViewModel;
-
     private MySurfaceView2 mySurfaceView;
+
+    //滑条
+    SeekBar seekBar;
+    public static double radius = 1;//滑动条最大代表2经度，默认1经度
 
     //相机权限
     List<String> requiredPermissions = Arrays.asList(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -105,6 +114,65 @@ public class NotificationsFragment extends Fragment implements SensorEventListen
 
         //询问相机权限
         checkPermissions();
+
+        //设置滑条点击事件
+        seekBar = root.findViewById(R.id.seekBar);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (seekBar.getId()==R.id.seekBar){
+                    radius = progress*1.0 / 50.0;
+                    Toast t = Toast.makeText(getContext(), null, Toast.LENGTH_LONG);
+                    t.setText("半径:" + radius);
+                    t.setGravity(Gravity.TOP,0,500);
+                    t.show();
+
+                    //加载周围飞机
+                    double r = radius;
+                    List<FlightInfo> tmpFlightInfoList = FlightInfoReceiver.getCurrentFlightInfo(
+                            MySurfaceView2.longitude-r,MySurfaceView2.longitude+r,
+                            MySurfaceView2.latitude-r,MySurfaceView2.latitude+r);
+                    //将原始飞机信息处理后存入flightInfoList
+                    MySurfaceView2.flightInfoList = new ArrayList<MyFlightInfo>();
+                    for(FlightInfo flightInfo : tmpFlightInfoList) {//排序
+                        float results[] = new float[3];
+                        MySurfaceView2.computeDistanceAndBearing(MySurfaceView2.latitude, MySurfaceView2.longitude,
+                                flightInfo.position.latitude, flightInfo.position.longitude, results);
+                        float distance = results[0];//飞机和用户之间的距离
+                        float initialBearing = results[1];
+                        float finalBearing = results[2];//飞机相对于用户手机镜头朝向的方向角
+                        MyFlightInfo myFlightInfo = new MyFlightInfo(flightInfo, (double)distance, (double)finalBearing);
+                        if(MySurfaceView2.flightInfoList.size() == 0){//原集合为空
+                            MySurfaceView2.flightInfoList.add(myFlightInfo);
+                        }
+                        else{//原集合不为空
+                            boolean is_succ = false;
+                            int listLen = MySurfaceView2.flightInfoList.size();
+                            for(int index = 0; index < listLen; index++){
+                                if(MySurfaceView2.flightInfoList.get(index).distance < distance){
+                                    MySurfaceView2.flightInfoList.add(index, myFlightInfo);
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if(!is_succ){
+                                MySurfaceView2.flightInfoList.add(myFlightInfo);
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
 
         //注册传感器
         compass_img = (ImageView) root.findViewById(R.id.compass_img);

@@ -49,15 +49,15 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
     private Canvas mCanvas;//用于绘制的Canvas
     private boolean mIsDrawing;//子线程标志位
 
-    ArrayList<MyFlightInfo> flightInfoList;//周围飞机信息列表，只在界面初始化时更新一次
-    private final double radius = 2;//寻找以手机位置为圆心，以该值为半径的圆以内的飞机
+    public static ArrayList<MyFlightInfo> flightInfoList;//周围飞机信息列表，只在界面初始化时更新一次
+    //private final double radius = 2;//寻找以手机位置为圆心，以该值为半径的圆以内的飞机
     ArrayList<FlightOnScreen> flightOnScreenArrayList;//在屏幕上的飞机的列表
 
     private SensorManager sensorManager;
     private float pitch_angle = 0;//屏幕俯仰角（随时更新）
     public static double compass_angle = 0;
-    private double longitude;//经度（随时更新）
-    private double latitude;//纬度（随时更新）
+    public static double longitude;//经度（随时更新）
+    public static double latitude;//纬度（随时更新）
     int screenWidth;//手机屏幕宽度
     int screenHeight;//手机屏幕高度
 
@@ -144,8 +144,9 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
         screenHeight = display.getHeight();
 
         //加载周围飞机
+        double r = NotificationsFragment.radius;
         List<FlightInfo> tmpFlightInfoList = FlightInfoReceiver.getCurrentFlightInfo(
-                longitude-radius,longitude+radius,latitude-radius,latitude+radius);
+                longitude-r,longitude+r,latitude-r,latitude+r);
         //将原始飞机信息处理后存入flightInfoList
         flightInfoList = new ArrayList<MyFlightInfo>();
         for(FlightInfo flightInfo : tmpFlightInfoList) {//排序
@@ -230,6 +231,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                 //绘制刻度尺
                 Bitmap ruler = BitmapFactory.decodeResource(getContext().getResources(), R.mipmap.ruler);
                 mCanvas.drawBitmap(ruler, 50, 20, new Paint());
+                double rulerHeight = ruler.getHeight();
 
                 //渲染飞机
                 double tmp_compass_angle = compass_angle;//保证一个for循环当中compass_angle不变
@@ -367,12 +369,13 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
                         float left = screenWidth/2 - bitmap.getWidth()/2 + leftRight * absBearingDiff * screenWidth / 60;
                         //计算在屏幕中的纵坐标
                         float height = flightInfo.flightInfo.height > 40000? 40000 : flightInfo.flightInfo.height;//默认最高4w，超过四万按照四万算
-                        float top = screenHeight * 3/4 * (1-height/40000);
+                        //float top = screenHeight * 3/4 * (1-height/40000);
+                        float top = (float) ((rulerHeight - 180) * (1-height/40000));
                         mCanvas.drawBitmap(bitmap, left, top, new Paint());
                         //绘制航班号
                         String icao = flightInfo.flightInfo.icao;
                         p.setTextSize(40);
-                        mCanvas.drawText(icao, left, top + bitmap.getWidth()+20, p);
+                        mCanvas.drawText(icao, left+20, top + bitmap.getWidth()+30, p);
 
                         //将该飞机加入屏幕飞机列表，按距离的升序排列
                         FlightOnScreen flightOnScreen = new FlightOnScreen(flightInfo,left,top,bitmap.getWidth(),bitmap.getHeight());
@@ -547,7 +550,7 @@ public class MySurfaceView2 extends SurfaceView implements SurfaceHolder.Callbac
     /**
      * 以下内容为获取两点方位角和距离的代码
      */
-    private static void computeDistanceAndBearing(double lat1, double lon1, double lat2, double lon2, float[] results) {
+    public static void computeDistanceAndBearing(double lat1, double lon1, double lat2, double lon2, float[] results) {
         // Based on http://www.ngs.noaa.gov/PUBS_LIB/inverse.pdf
         // using the "Inverse Formula" (section 4)
         int MAXITERS = 20;
