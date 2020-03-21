@@ -1,20 +1,13 @@
 package com.tongji.helloworld.engine;
 
-import android.app.Application;
-import android.graphics.Color;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
-import com.baidu.mapapi.map.Gradient;
-import com.baidu.mapapi.map.HeatMap;
 import com.baidu.mapapi.map.OverlayOptions;
-import com.baidu.mapapi.map.UrlTileProvider;
 import com.baidu.mapapi.model.LatLng;
 import com.tongji.helloworld.R;
-import com.tongji.helloworld.util.FlightInfoReceiver;
 import com.tongji.helloworld.util.MarkerUpdater;
 
 import org.json.JSONArray;
@@ -30,7 +23,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
 
 public class DataSource {
@@ -81,10 +73,11 @@ public class DataSource {
     }
 
     public void startUpdateAirplanePos(){
+        shouldExit = false;
         new Thread(new Runnable() {
             @Override
             public void run() {
-                while(true && !shouldExit){
+                while(!shouldExit){
                     try {
                         Log.d("saturn", "updating maker");
                         setAirplanePos();
@@ -97,48 +90,6 @@ public class DataSource {
         }).start();
     }
 
-    public void showHeatMap(){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int[] DEFAULT_GRADIENT_COLORS = {Color.rgb(102, 225, 0), Color.rgb(255, 0, 0)};
-//设置渐变颜色起始值
-                float[] DEFAULT_GRADIENT_START_POINTS = {0.2f, 1f};
-//构造颜色渐变对象
-                Gradient gradient = new Gradient(DEFAULT_GRADIENT_COLORS, DEFAULT_GRADIENT_START_POINTS);
-                List<LatLng> randomList = new ArrayList<LatLng>();
-
-        /*Random r = new Random();
-        for (int i = 0; i < 500; i++) {
-            // 116.220000,39.780000 116.570000,40.150000
-            int rlat = r.nextInt(370000);
-            int rlng = r.nextInt(370000);
-            int lat = 39780000 + rlat;
-            int lng = 116220000 + rlng;
-            LatLng ll = new LatLng(lat / 1E6, lng / 1E6);
-            randomList.add(ll);
-        }*/
-
-                try {
-                    String trackData = getTrack();
-                    JSONArray tracks = new JSONArray(trackData);
-                    for(int i = 0; i < tracks.length(); i++){
-                        JSONArray track = tracks.getJSONArray(i);
-                        randomList.add(new LatLng(track.getDouble(1), track.getDouble(0)));
-                    }
-                }catch (JSONException e){
-                    e.printStackTrace();
-                }
-
-                HeatMap mCustomHeatMap = new HeatMap.Builder()
-                        .data(randomList)
-                        .gradient(gradient)
-                        .build();
-
-                mBaiduMap.addHeatMap(mCustomHeatMap);
-            }
-        }).start();
-    }
 
     private String getTrack(){
         StringBuilder json = new StringBuilder();
@@ -167,6 +118,10 @@ public class DataSource {
 
     public void stopUpdate(){
         shouldExit = true;
+    }
+
+    public void removeAircraft(){
+        markerUpdater.removeAllCraft();
     }
 
     private void setAirplanePos() {

@@ -3,13 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/navigation_home">
+    app:startDestination="@+id/navigation_flight">
 
     <fragment
-        android:id="@+id/navigation_home"
-        android:name="com.tongji.helloworld.ui.home.HomeFragment"
-        android:label="@string/title_home"
-        tools:layout="@layout/fragment_home" />
+        android:id="@+id/navigation_flight"
+        android:name="com.tongji.helloworld.ui.flight.FlightFragment"
+        android:label="@string/title_flight"
+        tools:layout="@layout/fragment_flight" />
 
     <fragment
         android:id="@+id/navigation_dashboard"

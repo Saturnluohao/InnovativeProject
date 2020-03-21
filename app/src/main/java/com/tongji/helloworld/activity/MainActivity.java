@@ -4,23 +4,14 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 
 import com.baidu.mapapi.SDKInitializer;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.ar.core.ArCoreApk;
 import com.tongji.helloworld.R;
-import com.tongji.helloworld.ui.dashboard.DashboardFragment;
-import com.tongji.helloworld.ui.home.HomeFragment;
-import com.tongji.helloworld.ui.notifications.NotificationsFragment;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -62,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
+                R.id.navigation_flight, R.id.navigation_dashboard, R.id.navigation_notifications)
                 .build();
         navView = findViewById(R.id.nav_view);
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
@@ -75,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*public void initView() {
-        homeFragment = new HomeFragment();
+        homeFragment = new FlightFragment();
         dashFragment = new DashboardFragment();
         notiFragment = new NotificationsFragment();
         bottomNavigationView = findViewById(R.id.nav_view);

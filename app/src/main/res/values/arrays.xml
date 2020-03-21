@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="cities">
+        <item>芜湖</item>
+        <item>上海</item>
+        <item>北京</item>
+        <item>马鞍山</item>
+        <item>南京</item>
+        <item>无锡</item>
+        <item>宁波</item>
+        <item>厦门</item>
+        <item>泉州</item>
+        <item>深圳</item>
+        <item>合肥</item>
+    </array>
+
+    <array name="timespan">
+        <item>4h</item>
+        <item>8h</item>
+        <item>12h</item>
+        <item>16h</item>
+        <item>20h</item>
+        <item>24h</item>
+    </array>
+
+
+</resources>

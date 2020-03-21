@@ -65,4 +65,14 @@ public class MarkerUpdater {
             }
         }
     }
+
+    public void removeAllCraft(){
+        Iterator<Map.Entry<String, Marker>> it = markerMap.entrySet().iterator();
+        while(it.hasNext()){
+            Map.Entry<String, Marker> entry = it.next();
+
+            entry.getValue().remove();
+            it.remove();
+        }
+    }
 }

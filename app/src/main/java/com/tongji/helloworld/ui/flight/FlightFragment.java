@@ -1,21 +1,19 @@
-package com.tongji.helloworld.ui.home;
-import android.Manifest;
+package com.tongji.helloworld.ui.flight;
+import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
@@ -24,6 +22,10 @@ import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.CoordType;
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
+import com.baidu.mapapi.map.Gradient;
+import com.baidu.mapapi.map.HeatMap;
+import com.baidu.mapapi.map.MapStatus;
+import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.Marker;
@@ -31,17 +33,24 @@ import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
 import com.tongji.helloworld.R;
 import com.tongji.helloworld.engine.DataSource;
-import com.tongji.helloworld.engine.FlightInfo;
-import com.tongji.helloworld.service.UpdateAirplanePosService;
+import com.tongji.helloworld.ui.flight.Dialog.CityPickerDialog;
+import com.tongji.helloworld.ui.flight.Interface.HeatMapOperation;
 import com.tongji.helloworld.util.FlightInfoReceiver;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
-import static android.content.Context.BIND_AUTO_CREATE;
+public class FlightFragment extends Fragment implements HeatMapOperation {
 
-public class HomeFragment extends Fragment {
+    int[] DEFAULT_GRADIENT_COLORS = {Color.rgb(102, 225, 0), Color.rgb(255, 0, 0)};
+    //设置渐变颜色起始值
+    float[] DEFAULT_GRADIENT_START_POINTS = {0.2f, 1f};
+    //构造颜色渐变对象
+    Gradient gradient = new Gradient(DEFAULT_GRADIENT_COLORS, DEFAULT_GRADIENT_START_POINTS);
 
-    private HomeViewModel homeViewModel;
+    private HeatMap mCustomHeatMap;
+    private FlightViewModel flightViewModel;
     private MapView mMapView = null;
     private LocationClient mLocationClient = null;
     private BaiduMap mMap = null;
@@ -84,12 +93,12 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d("saturn", "Home Fragment's view created");
 
-        homeViewModel = ViewModelProviders.of(this).get(HomeViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_home, container, false);
+        flightViewModel = ViewModelProviders.of(this).get(FlightViewModel.class);
+        View root = inflater.inflate(R.layout.fragment_flight, container, false);
         mMapView = root.findViewById(R.id.bmapView);
         initMyMap();
-        //RecyclerView city_list = getActivity().findViewById(R.id.city_list);
-        //city_list.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+
+        setHasOptionsMenu(true);
 
         return root;
     }
@@ -126,6 +135,23 @@ public class HomeFragment extends Fragment {
     }
 
     @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.action_bar_menu, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.HMAction:
+                CityPickerDialog cityPicker = new CityPickerDialog();
+                cityPicker.setHeatMapOperation(this);
+                cityPicker.show(getFragmentManager(), "CITYPICKER");
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void onResume() {
         Log.d("saturn", "Home Fragment resumed");
         super.onResume();
@@ -145,5 +171,57 @@ public class HomeFragment extends Fragment {
         Log.d("saturn", "Home Fragment destroyed");
         mMapView.onDestroy();
         super.onDestroy();
+    }
+
+    @Override
+    public void showHeatMap(final String city, final int timespan) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Resources res = getResources();
+                    String[] cities = res.getStringArray(R.array.cities);
+
+                    Field field = R.string.class.getField(city);
+                    int id = field.getInt(new R.string());
+
+
+                    String latlng = res.getString(id);
+                    String[] p = latlng.split(",");
+                    double minLat = Double.parseDouble(p[0]);
+                    double maxLat = Double.parseDouble(p[1]);
+                    double minLng = Double.parseDouble(p[2]);
+                    double maxLng = Double.parseDouble(p[3]);
+
+                    List<LatLng> randomList = FlightInfoReceiver.getHistoryTrack(minLng, maxLng, minLat, maxLat, timespan);
+
+                    mCustomHeatMap = new HeatMap.Builder()
+                            .data(randomList)
+                            .gradient(gradient)
+                            .build();
+
+                    mMap.addHeatMap(mCustomHeatMap);
+
+                    MapStatus status = new MapStatus.Builder().target(new LatLng(33.0, 119.0)).build();
+                    MapStatusUpdate update = MapStatusUpdateFactory.newMapStatus(status);
+                    mMap.setMapStatus(update);
+
+                    dataSource.stopUpdate();
+                    dataSource.removeAircraft();
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    @Override
+    public void hideHeatMap() {
+        dataSource.startUpdateAirplanePos();
+        if(mCustomHeatMap != null){
+            mCustomHeatMap.removeHeatMap();
+        }
     }
 }
