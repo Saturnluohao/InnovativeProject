@@ -1,4 +1,6 @@
 package com.tongji.helloworld.ui.flight;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -12,6 +14,8 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -56,6 +60,13 @@ public class FlightFragment extends Fragment implements HeatMapOperation {
     private BaiduMap mMap = null;
     public static boolean isLocated = false;
     private DataSource dataSource;
+
+    private static final int OPEN_SET_REQUEST_CODE = 100;
+    private String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                                                Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS};
+
+
     /*private UpdateAirplanePosService.UpdateAirplanePosBinder mUAPBinder;
     private ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -96,6 +107,10 @@ public class FlightFragment extends Fragment implements HeatMapOperation {
         flightViewModel = ViewModelProviders.of(this).get(FlightViewModel.class);
         View root = inflater.inflate(R.layout.fragment_flight, container, false);
         mMapView = root.findViewById(R.id.bmapView);
+        if (missPermission(permissions)){
+            ActivityCompat.requestPermissions(getActivity(), permissions, OPEN_SET_REQUEST_CODE);
+        }
+
         initMyMap();
 
         setHasOptionsMenu(true);
@@ -181,9 +196,9 @@ public class FlightFragment extends Fragment implements HeatMapOperation {
                 try {
                     Resources res = getResources();
                     String[] cities = res.getStringArray(R.array.cities);
-
                     Field field = R.string.class.getField(city);
-                    int id = field.getInt(new R.string());
+
+                    int id = field.getInt(field);
 
 
                     String latlng = res.getString(id);
@@ -195,6 +210,10 @@ public class FlightFragment extends Fragment implements HeatMapOperation {
 
                     List<LatLng> randomList = FlightInfoReceiver.getHistoryTrack(minLng, maxLng, minLat, maxLat, timespan);
 
+                    if(randomList.isEmpty()){
+                        Toast.makeText(getContext(), "Failed to load flight data", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     mCustomHeatMap = new HeatMap.Builder()
                             .data(randomList)
                             .gradient(gradient)
@@ -202,7 +221,9 @@ public class FlightFragment extends Fragment implements HeatMapOperation {
 
                     mMap.addHeatMap(mCustomHeatMap);
 
-                    MapStatus status = new MapStatus.Builder().target(new LatLng(33.0, 119.0)).build();
+                    MapStatus status = new MapStatus.Builder().target(new LatLng((minLat + maxLat) / 2,
+                            (minLng + maxLng) / 2))
+                            .build();
                     MapStatusUpdate update = MapStatusUpdateFactory.newMapStatus(status);
                     mMap.setMapStatus(update);
 
@@ -222,6 +243,31 @@ public class FlightFragment extends Fragment implements HeatMapOperation {
         dataSource.startUpdateAirplanePos();
         if(mCustomHeatMap != null){
             mCustomHeatMap.removeHeatMap();
+        }
+    }
+
+    private boolean missPermission(String[] permissions){
+        for (String permission : permissions){
+            if (ContextCompat.checkSelfPermission(getContext(), permission) != PackageManager.PERMISSION_GRANTED){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode){
+            case OPEN_SET_REQUEST_CODE:
+                if (grantResults.length > 0){
+                    for (int i = 0; i < grantResults.length; i++){
+                        if (grantResults[i] != PackageManager.PERMISSION_GRANTED){
+                            Toast.makeText(getContext(), "未获取位置权限", Toast.LENGTH_LONG).show();
+                            break;
+                        }
+                    }
+                }
         }
     }
 }

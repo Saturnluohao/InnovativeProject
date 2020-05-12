@@ -11,5 +11,18 @@
     <string name="picture">拍摄</string>
     <string name="CityPickerTitle">请选择城市</string>
     <string name="HeatMapAction">热力图</string>
+    <string name="安徽">30.63439,31.88294,120.86388,122.85079</string>
+    <string name="北京">39.45738,41.07453,115.41771,117.53340</string>
+    <string name="重庆">28.20290,32.21250,105.2992,110.21127</string>
+    <string name="广东">20.24828,25.53019,109.71455,117.34943</string>
+    <string name="广西">21.47608,26.4116,120.86388,122.85079</string>
+    <string name="河北">36.08114,42.60159,113.50439,119.88825</string>
+    <string name="河南">31.39548,36.42388,110.45044,116.63193</string>
+    <string name="湖北">29.09552,33.23888,108.38994,116.15360</string>
+    <string name="湖南">24.64218,30.15642,108.83148,114.20349</string>
+    <string name="江苏">30.79385,35.13460,116.37437,121.93035</string>
+    <string name="山东">34.43638,38.24538,114.829,122.62945</string>
     <string name="上海">30.63439,31.88294,120.86388,122.85079</string>
+    <string name="四川">26.113,34.2838,97.27797,108.50033</string>
+    <string name="天津">38.59276,40.23383,116.71472,118.09452</string>
 </resources>

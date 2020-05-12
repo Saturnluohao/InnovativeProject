@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="cities">
-        <item>芜湖</item>
-        <item>上海</item>
+        <item>安徽</item>
         <item>北京</item>
-        <item>马鞍山</item>
-        <item>南京</item>
-        <item>无锡</item>
-        <item>宁波</item>
-        <item>厦门</item>
-        <item>泉州</item>
-        <item>深圳</item>
-        <item>合肥</item>
+        <item>重庆</item>
+        <item>广东</item>
+        <item>广西</item>
+        <item>河北</item>
+        <item>河南</item>
+        <item>湖北</item>
+        <item>湖南</item>
+        <item>江苏</item>
+        <item>山东</item>
+        <item>上海</item>
+        <item>四川</item>
+        <item>天津</item>
     </array>
 
     <array name="timespan">
