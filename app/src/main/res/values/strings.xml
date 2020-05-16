@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">GFlight</string>
     <string name="title_flight">航班</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="title_search">查询</string>
+    <string name="title_ar">AR</string>
     <string name="_lease_open_permissions">Please open permissions</string>
     <string name="choose_wallpaper">Choose wallpaper</string>
     <string name="description_info">Info</string>

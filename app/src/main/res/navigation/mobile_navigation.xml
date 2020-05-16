@@ -12,14 +12,14 @@
         tools:layout="@layout/fragment_flight" />
 
     <fragment
-        android:id="@+id/navigation_dashboard"
+        android:id="@+id/navigation_search"
         android:name="com.tongji.helloworld.ui.dashboard.DashboardFragment"
-        android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
+        android:label="@string/title_search"
+        tools:layout="@layout/fragment_search" />
 
     <fragment
-        android:id="@+id/navigation_notifications"
+        android:id="@+id/navigation_ar"
         android:name="com.tongji.helloworld.ui.notifications.NotificationsFragment"
-        android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" />
+        android:label="@string/title_ar"
+        tools:layout="@layout/fragment_ar" />
 </navigation>

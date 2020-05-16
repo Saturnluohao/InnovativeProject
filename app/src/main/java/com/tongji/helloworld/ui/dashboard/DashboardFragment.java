@@ -1,25 +1,15 @@
 package com.tongji.helloworld.ui.dashboard;
 
-import android.Manifest;
-import android.content.Context;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.RotateAnimation;
-import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
@@ -35,7 +25,7 @@ public class DashboardFragment extends Fragment {
         Log.d("hidayat", "Dash Fragment's view created");
 
         dashboardViewModel = ViewModelProviders.of(this).get(DashboardViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_dashboard, container, false);
+        View root = inflater.inflate(R.layout.fragment_search, container, false);
 
         final TextView textView = root.findViewById(R.id.text_dashboard);
         dashboardViewModel.getText().observe(this, new Observer<String>() {

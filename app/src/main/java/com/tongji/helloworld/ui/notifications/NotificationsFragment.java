@@ -1,11 +1,9 @@
 package com.tongji.helloworld.ui.notifications;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.graphics.Canvas;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -32,7 +30,6 @@ import android.os.Environment;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
-import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Surface;
@@ -43,7 +40,6 @@ import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.SeekBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -51,7 +47,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import com.tongji.helloworld.R;
 import com.tongji.helloworld.engine.FlightInfo;
@@ -66,7 +61,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 
 public class NotificationsFragment extends Fragment implements SensorEventListener {
 
@@ -100,7 +94,7 @@ public class NotificationsFragment extends Fragment implements SensorEventListen
         Log.d("saturn", "Notice Fragment's view created");
 
         notificationsViewModel = ViewModelProviders.of(this).get(NotificationsViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_notifications, container, false);
+        View root = inflater.inflate(R.layout.fragment_ar, container, false);
 
         mySurfaceView = root.findViewById(R.id.plane);
         textureView = root.findViewById(R.id.textureView);
