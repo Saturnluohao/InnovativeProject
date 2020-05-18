@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +27,7 @@ import com.tongji.helloworld.util.FlightInfoReceiver;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.tongji.helloworld.R;
+import com.tongji.helloworld.widget.FlightDetailAdapter;
 
 import java.util.List;
 
@@ -36,14 +38,14 @@ public class DashboardFragment extends Fragment {
     private Button confirm=null;
     private EditText flightText=null;
     private List<FlightDetail> detailsList=null;
-    private TextView textView=null;
+    private ListView flightList=null;
 
     private Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            int size=detailsList.size();
-            textView.setText(size+"");
+            FlightDetailAdapter adapter=new FlightDetailAdapter(getContext(), R.layout.flight_item, detailsList);
+            flightList.setAdapter(adapter);
         }
     };
 
@@ -56,7 +58,8 @@ public class DashboardFragment extends Fragment {
 
         confirm = root.findViewById(R.id.confirm);
         flightText = root.findViewById(R.id.flightInput);
-        textView = root.findViewById(R.id.detail);
+        flightList = root.findViewById(R.id.flighList);
+
         confirm.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 final String text = flightText.getText().toString();

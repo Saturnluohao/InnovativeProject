@@ -240,8 +240,9 @@ class ReceiveThread extends Thread{
                 String start = item.getString(11);
                 String end = item.getString(12);
                 String flight = item.getString(13);
+                String airline = item.getString(18);
 //                if(icao.indexOf(target)!=-1||flight.indexOf(target)!=-1)
-                    DetailList.add(new FlightDetail(icao, lat, lng, altitude, direction, type, start, end, flight));
+                    DetailList.add(new FlightDetail(icao, lat, lng, altitude, direction, type, start, end, flight, airline ));
             }
         }catch (JSONException e){
             e.printStackTrace();
