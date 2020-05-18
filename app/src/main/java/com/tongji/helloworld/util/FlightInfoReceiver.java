@@ -1,5 +1,6 @@
 package com.tongji.helloworld.util;
 
+import android.annotation.SuppressLint;
 import android.provider.ContactsContract;
 
 import com.baidu.mapapi.model.LatLng;
@@ -168,8 +169,8 @@ class ReceiveThread extends Thread{
     private String getFlightInfoDataFromRadar(double minLon, double maxLon, double minLat, double maxLat){
         StringBuilder json = new StringBuilder();
         try {
-            String queryString = String.format("https://data-live.flightradar24.com/zones/fcgi/feed.js?bounds=%f,%f,%f,%f&flight=%s&faa=1&satellite=1&mlat=1&flarm=1&adsb=1&gnd=1&air=1&vehicles=1&estimated=1&maxage=14400&gliders=1&stats=1",
-                    maxLat, minLat, minLon, maxLon, target);
+            String queryString = String.format("https://data-live.flightradar24.com/zones/fcgi/feed.js?bounds=%f,%f,%f,%f&faa=1&satellite=1&mlat=1&flarm=1&adsb=1&gnd=1&air=1&vehicles=1&estimated=1&maxage=14400&gliders=1&stats=1",
+                    maxLat, minLat, minLon, maxLon);
             URL url = new URL(queryString);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 

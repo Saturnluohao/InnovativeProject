@@ -1,5 +1,6 @@
 package com.tongji.helloworld.engine;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 
 import com.baidu.mapapi.map.BaiduMap;
