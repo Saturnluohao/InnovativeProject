@@ -1,7 +1,10 @@
 package com.tongji.helloworld.util;
 
+import android.provider.ContactsContract;
+
 import com.baidu.mapapi.model.LatLng;
 import com.tongji.helloworld.engine.FlightInfo;
+import com.tongji.helloworld.engine.FlightDetail;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,12 +47,23 @@ public class FlightInfoReceiver {
         }
         return thread.historyTrack;
     }
+
+    public static List<FlightDetail> getFlightDetail(String target){
+        ReceiveThread thread = new ReceiveThread(DATATYPE.FLIGHTDETAIL, target);
+        try{
+            thread.start();
+            thread.join();
+        }catch (InterruptedException e){
+            e.printStackTrace();
+        }
+        return thread.targetDetail;
+    }
 }
 
 
 class ReceiveThread extends Thread{
     List<FlightInfo> flightInfoList;
-
+    List<FlightDetail> targetDetail;
     List<LatLng> historyTrack;
 
     public ReceiveThread(double minLon, double maxLon, double minLat, double maxLat, DATATYPE datatype) {
@@ -67,6 +81,14 @@ class ReceiveThread extends Thread{
         this.datatype = datatype;
         this.timespan = timespan;
     }
+    public ReceiveThread(DATATYPE datatype, String target){
+        this.minLon = 73.0;
+        this.maxLon = 135.0;
+        this.minLat = 18.0;
+        this.maxLat = 53.0;
+        this.datatype = datatype;
+        this.target = target;
+    }
 
     public void run(){
         switch (datatype){
@@ -77,6 +99,10 @@ class ReceiveThread extends Thread{
             case HISTORYTRACK:
                 String trackData = getHistoryTrack(minLon, maxLon, minLat, maxLat, timespan);
                 historyTrack = parseHistoryTrack(trackData);
+                break;
+            case FLIGHTDETAIL:
+                String allData = getFlightInfoDataFromRadar(minLon, maxLon, minLat, maxLat);
+                targetDetail = parseDetailData(allData);
                 break;
         }
     }
@@ -142,8 +168,8 @@ class ReceiveThread extends Thread{
     private String getFlightInfoDataFromRadar(double minLon, double maxLon, double minLat, double maxLat){
         StringBuilder json = new StringBuilder();
         try {
-            String queryString = String.format("https://data-live.flightradar24.com/zones/fcgi/feed.js?bounds=%f,%f,%f,%f&faa=1&satellite=1&mlat=1&flarm=1&adsb=1&gnd=1&air=1&vehicles=1&estimated=1&maxage=14400&gliders=1&stats=1",
-                    maxLat, minLat, minLon, maxLon);
+            String queryString = String.format("https://data-live.flightradar24.com/zones/fcgi/feed.js?bounds=%f,%f,%f,%f&flight=%s&faa=1&satellite=1&mlat=1&flarm=1&adsb=1&gnd=1&air=1&vehicles=1&estimated=1&maxage=14400&gliders=1&stats=1",
+                    maxLat, minLat, minLon, maxLon, target);
             URL url = new URL(queryString);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
@@ -193,12 +219,44 @@ class ReceiveThread extends Thread{
         return FlightInfoList;
     }
 
+    private ArrayList<FlightDetail> parseDetailData(String data){
+        ArrayList<FlightDetail> DetailList = new ArrayList<FlightDetail>();
+        try {
+            JSONObject flightInfo = new JSONObject(data);
+            flightInfo.remove("full_count");
+            flightInfo.remove("version");
+            flightInfo.remove("stats");
+            Iterator<String> keys = flightInfo.keys();
+
+            while(keys.hasNext()){
+                String key = keys.next();
+                JSONArray item = flightInfo.getJSONArray(key);
+                String icao = item.getString(0);
+                Double lat = item.getDouble(1);
+                Double lng = item.getDouble(2);
+                int direction = item.getInt(3);
+                int altitude = item.getInt(4);
+                String type = item.getString(8);
+                String start = item.getString(11);
+                String end = item.getString(12);
+                String flight = item.getString(13);
+//                if(icao.indexOf(target)!=-1||flight.indexOf(target)!=-1)
+                    DetailList.add(new FlightDetail(icao, lat, lng, altitude, direction, type, start, end, flight));
+            }
+        }catch (JSONException e){
+            e.printStackTrace();
+        }
+        return DetailList;
+    }
+
     private double minLon, maxLon, minLat, maxLat;
     private DATATYPE datatype;
     private int timespan;
+    private String target="";
 }
 
 enum DATATYPE{
     FLIGHTINFO,
-    HISTORYTRACK
+    HISTORYTRACK,
+    FLIGHTDETAIL
 }

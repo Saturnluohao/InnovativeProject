@@ -11,6 +11,8 @@
     <string name="picture">拍摄</string>
     <string name="CityPickerTitle">请选择城市</string>
     <string name="HeatMapAction">热力图</string>
+    <string name="input_hint">请输入要查询的航班号</string>
+    <string name="confirm">确认</string>
     <string name="安徽">30.63439,31.88294,120.86388,122.85079</string>
     <string name="北京">39.45738,41.07453,115.41771,117.53340</string>
     <string name="重庆">28.20290,32.21250,105.2992,110.21127</string>
